@@ -1,0 +1,130 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+
+# Load the dataset
+url = r'c:\Users\mjana\Music\Downloads\archive (17).zip'
+df = pd.read_csv(url)
+
+# Display the first few rows of the dataset
+df.head()
+df.info()
+df.describe()
+df.isnull().sum()
+df.duplicated ().sum()
+print(df.columns.tolist())
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+plt.figure(figsize=(10, 6))
+plt.hist(df['PTS'], bins=30, color='skyblue', edgecolor='black')
+plt.title('Histogram of Points per Game')
+plt.xlabel('Points per Game')
+plt.ylabel('Frequency')
+plt.grid(True)
+plt.show()
+
+plt.figure(figsize=(10, 6))
+sns.kdeplot(df['AST'], fill=True, color='purple')
+plt.title('Density Plot of Assists per Game')
+plt.xlabel('Assists per Game')
+plt.ylabel('Density')
+plt.grid(True)
+plt.show()
+
+Team_counts = df['Team'].value_counts()
+plt.figure(figsize=(8, 8))
+plt.pie(Team_counts, labels=Team_counts.index, autopct='%1.1f%%', startangle=140)
+plt.title('Distribution of Player Team')
+plt.axis('equal')  # Equal aspect ratio for a perfect circle
+plt.show()
+
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='POS', y='PTS', data=df,hue='POS', palette='Set2',legend=False)
+plt.title('Box Plot: Points per Game by Position')
+plt.xlabel('Position')
+plt.ylabel('Points per Game')
+plt.grid(True)
+
+plt.figure(figsize=(12, 6))
+sns.lineplot(x='GP', y='PTS', data=df)
+plt.title('Points per Game Over Time')
+plt.xlabel('Games Played')
+plt.ylabel('Points per Game')
+plt.show()
+plt.show()
+
+plt.figure(figsize=(8, 6))
+sns.countplot(data=df, x='POS', order=df['POS'].value_counts().index,hue='POS', palette='Set2',legend=False)
+plt.title('Player Distribution by Position')
+plt.xlabel('Position')
+plt.ylabel('Count')
+plt.show()
+
+plt.figure(figsize=(8, 6))
+sns.scatterplot(data=df, x='AST', y='PTS', hue='POS', alpha=0.7)
+plt.title('Assists vs Points by Position')
+plt.xlabel('Assists')
+plt.ylabel('Points')
+plt.show()
+
+
+
+import pandas as pd
+# Basic structure
+print("Dataset Shape:", df.shape)
+print("\nColumn Names:\n", df.columns.tolist())
+# Summary of each column
+for col in df.columns:
+    print(f"\n----- {col} -----")
+    print("Data Type:", df[col].dtype)
+    print("Missing Values:", df[col].isnull().sum())
+    
+    if df[col].dtype == 'object':
+        print("Unique Values:", df[col].nunique())
+        print("Top 5 Most Frequent Values:\n", df[col].value_counts().head())
+    else:
+        print("Min:", df[col].min())
+        print("Max:", df[col].max())
+        print("Mean:", df[col].mean())
+        print("Median:", df[col].median())
+        print("Standard Deviation:", df[col].std())
+
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+# Remove unnamed columns
+df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+# Normalize column names
+df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
+# Handle missing values
+num_cols = df.select_dtypes(include=np.number).columns
+df[num_cols] = df[num_cols].fillna(df[num_cols].median())
+cat_cols = df.select_dtypes(include='object').columns
+df.dropna(subset=cat_cols, inplace=True)
+# Convert height to inches
+if 'height' in df.columns:
+    def convert_height(h):
+        try:
+            feet, inches = map(int, h.split('-'))
+            return feet * 12 + inches
+        except:
+            return np.nan
+    df['height_inches'] = df['height'].apply(convert_height)
+    df['height_inches'] = df['height_inches'].fillna(df['height_inches'].median())
+# Convert percentage columns
+for col in df.columns:
+    if df[col].dtype == 'object' and df[col].str.contains('%').any():
+        df[col] = df[col].str.replace('%', '', regex=False).astype(float) / 100.0
+# Re-identify numeric columns
+num_cols = df.select_dtypes(include=np.number).columns
+# Scale numeric features
+scaler = StandardScaler()
+df[num_cols] = scaler.fit_transform(df[num_cols])
+# Show preview as a table (first 10 rows)
+print("\nPreview of preprocessed & scaled data:")
+print(df.head(10).to_string(index=False))
